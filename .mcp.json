@@ -4,7 +4,8 @@
       "type": "http",
       "url": "https://atlas.diligent.com/api/mcp",
       "headers": {
-        "x-atlas-environment": "prototype"
+        "x-atlas-environment": "prototype",
+        "Authorization": "Bearer ***REMOVED***"
       }
     },
     "mui": {

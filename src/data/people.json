@@ -1,0 +1,58 @@
+[
+  {
+    "id": "p1",
+    "name": "Sarah Chen",
+    "email": "sarah.chen@enterprise.com",
+    "role": "Senior Auditor",
+    "groupIds": ["g1", "g3"]
+  },
+  {
+    "id": "p2",
+    "name": "Michael Rodriguez",
+    "email": "michael.rodriguez@enterprise.com",
+    "role": "Audit Manager",
+    "groupIds": ["g1"]
+  },
+  {
+    "id": "p3",
+    "name": "Emily Thompson",
+    "email": "emily.thompson@enterprise.com",
+    "role": "Compliance Specialist",
+    "groupIds": ["g2", "g3"]
+  },
+  {
+    "id": "p4",
+    "name": "David Kim",
+    "email": "david.kim@enterprise.com",
+    "role": "Internal Auditor",
+    "groupIds": ["g1"]
+  },
+  {
+    "id": "p5",
+    "name": "Jennifer Walsh",
+    "email": "jennifer.walsh@enterprise.com",
+    "role": "Risk Analyst",
+    "groupIds": ["g2"]
+  },
+  {
+    "id": "p6",
+    "name": "Robert Martinez",
+    "email": "robert.martinez@enterprise.com",
+    "role": "Audit Director",
+    "groupIds": ["g1", "g4"]
+  },
+  {
+    "id": "p7",
+    "name": "Lisa Anderson",
+    "email": "lisa.anderson@enterprise.com",
+    "role": "Compliance Officer",
+    "groupIds": ["g2"]
+  },
+  {
+    "id": "p8",
+    "name": "James Wilson",
+    "email": "james.wilson@enterprise.com",
+    "role": "Senior Auditor",
+    "groupIds": ["g3"]
+  }
+]
