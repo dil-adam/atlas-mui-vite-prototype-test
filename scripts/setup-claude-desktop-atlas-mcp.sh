@@ -4,9 +4,13 @@
 # From a shell: sh scripts/setup-claude-desktop-atlas-mcp.sh
 # Docs: ../MCP_SETUP.md — Atlas MCP setup for this template
 # Success banner uses UTF-8 block characters (terminal should be UTF-8, e.g. macOS default).
-# Banner gradient: Semantic.Color.AI.Default middle → end (Lens)
-#   Core.Purple.50 #ab48da → Core.Indigo.50 #4069fe
-#   packages/design-tokens/tokens/lens/semantic.colors.yaml
+# Banner gradient (purple → blue): Semantic.Color.AI.Default Gradient middle → Gradient end (Lens):
+#   Core.Color.Purple.50 #ab48da → Core.Color.Indigo.50 #4069fe
+#   packages/design-tokens/tokens/lens/semantic.colors.yaml (Semantic.Color.AI.Default)
+# Color output:
+#   • Default: truecolor CSI 38;2;r;g;b (iTerm, Kitty, WezTerm, most modern terminals).
+#   • Apple_Terminal: 256-color cube (CSI 38;5;n) — stock Terminal mis-handles 38;2 (stripes).
+#   • Override: ATLAS_MCP_BANNER_256=1 force cube; ATLAS_MCP_BANNER_TRUECOLOR=1 force 38;2 even in Terminal.app.
 
 set -e
 
@@ -74,8 +78,20 @@ link_line() {
   printf '  %s%s%s\n' "${C_LINK}" "$1" "${C_RESET}"
 }
 
-# Banner gradient: default = truecolor \033[38;2 RGB lerp (Purple.50 → Indigo.50, no bold).
-# ATLAS_MCP_BANNER_256=1 = hand-picked xterm ramp (for terminals with bad 38;2 or cube-snap stripes).
+# Truecolor vs 256: see header comment (Apple_Terminal + 38;2 = broken; 38:2:r:g:b = wrong in iTerm → green).
+_ai_banner_use_256() {
+  if [ -n "${ATLAS_MCP_BANNER_TRUECOLOR:-}" ]; then
+    return 1
+  fi
+  if [ -n "${ATLAS_MCP_BANNER_256:-}" ]; then
+    return 0
+  fi
+  case "${TERM_PROGRAM:-}" in
+  Apple_Terminal) return 0 ;;
+  esac
+  return 1
+}
+
 _ai_banner_fg() {
   if [ -n "${NO_COLOR:-}" ]; then
     return 0
@@ -90,18 +106,12 @@ _ai_banner_fg() {
   fi
   _step="$1"
   _max="$2"
-  if [ -n "${ATLAS_MCP_BANNER_256:-}" ]; then
-    awk -v step="${_step}" -v max="${_max}" 'BEGIN {
-      n = split("165 141 135 129 99 63 69 75 39 33 27 69", arr, " ")
-      if (max < 1) max = 1
-      i = int(step * (n - 1) / max + 1.5)
-      if (i < 1) i = 1
-      if (i > n) i = n
-      printf "\033[38;5;%dm", arr[i]
-    }'
-    return 0
+  _use256=1
+  if ! _ai_banner_use_256; then
+    _use256=0
   fi
-  awk -v step="${_step}" -v max="${_max}" 'BEGIN {
+  awk -v step="${_step}" -v max="${_max}" -v use256="${_use256}" 'BEGIN {
+    # Semantic.Color.AI.Default — Gradient middle / Gradient end (lens)
     r0 = 171; g0 = 72;  b0 = 218
     r1 = 64;  g1 = 105; b1 = 254
     if (max < 1) max = 1
@@ -111,7 +121,28 @@ _ai_banner_fg() {
     r = int(r0 + (r1 - r0) * t + 0.5)
     g = int(g0 + (g1 - g0) * t + 0.5)
     b = int(b0 + (b1 - b0) * t + 0.5)
-    printf "\033[38;2;%d;%d;%dm", r, g, b
+    if ((use256 + 0) == 1) {
+      if (r == g && g == b && r >= 8 && r <= 238) {
+        gs = int((r - 8) / 10 + 0.5)
+        if (gs < 0) gs = 0
+        if (gs > 23) gs = 23
+        c = 232 + gs
+      } else {
+        ri = int((r + 25) / 51)
+        if (ri < 0) ri = 0
+        if (ri > 5) ri = 5
+        gi = int((g + 25) / 51)
+        if (gi < 0) gi = 0
+        if (gi > 5) gi = 5
+        bi = int((b + 25) / 51)
+        if (bi < 0) bi = 0
+        if (bi > 5) bi = 5
+        c = 16 + 36 * ri + 6 * gi + bi
+      }
+      printf "\033[38;5;%dm", c
+    } else {
+      printf "\033[38;2;%d;%d;%dm", r, g, b
+    }
   }'
 }
 
@@ -120,7 +151,7 @@ _banner_grad_line() {
   printf '  %s%s\033[0m\n' "$(_ai_banner_fg "$1" 11)" "$2"
 }
 
-# Subheadline: truecolor Indigo.50 by default; 256 (69) when ATLAS_MCP_BANNER_256=1.
+# Subheadline: Core.Color.Indigo.50 #4069fe (Semantic.Color.AI.Default Gradient end).
 _ai_subhead_fg() {
   if [ -n "${NO_COLOR:-}" ]; then
     printf '%s' "${C_OK}"
@@ -130,11 +161,25 @@ _ai_subhead_fg() {
     printf '\033[94m'
     return 0
   fi
-  if [ -n "${ATLAS_MCP_BANNER_256:-}" ]; then
-    awk 'BEGIN { printf "\033[38;5;69m" }'
-    return 0
+  _use256=1
+  if ! _ai_banner_use_256; then
+    _use256=0
   fi
-  awk 'BEGIN { printf "\033[38;2;64;105;254m" }'
+  awk -v use256="${_use256}" 'BEGIN {
+    r = 64; g = 105; b = 254
+    if ((use256 + 0) == 1) {
+      ri = int((r + 25) / 51)
+      if (ri > 5) ri = 5
+      gi = int((g + 25) / 51)
+      if (gi > 5) gi = 5
+      bi = int((b + 25) / 51)
+      if (bi > 5) bi = 5
+      c = 16 + 36 * ri + 6 * gi + bi
+      printf "\033[38;5;%dm", c
+    } else {
+      printf "\033[38;2;%d;%d;%dm", r, g, b
+    }
+  }'
 }
 
 # Big colorful banner (UTF-8 box drawing). Shown at the end on success.
@@ -210,13 +255,26 @@ if [ ! -f "$CLAUDE_CONFIG" ]; then
   printf '%s\n' '{"mcpServers":{}}' > "$CLAUDE_CONFIG" || exit 1
 fi
 
-# Already have Atlas MCP URL: refresh Bearer token only (same line as URL in compact JSON).
+# Already have Atlas MCP URL: refresh Bearer token only.
+# Handles both compact (single-line) and pretty-printed (multi-line) JSON.
 if grep -q 'https://atlas\.diligent\.com/api/mcp' "$CLAUDE_CONFIG" 2>/dev/null; then
   printf '\r  %s%sUpdating bearer token…%s' "${C_DIM}" "${C_BOLD}" "${C_RESET}"
-  sed -i '' -E '/https:\/\/atlas\.diligent\.com\/api\/mcp/s#"Authorization"[[:space:]]*:[[:space:]]*"Bearer[^"]*"#"Authorization":"Bearer '"$ATLAS_MCP_TOKEN"'"#' "$CLAUDE_CONFIG" || exit 1
+
+  # Use awk to handle multi-line JSON properly
+  awk -v token="$ATLAS_MCP_TOKEN" '
+    /https:\/\/atlas\.diligent\.com\/api\/mcp/ { in_atlas = 1 }
+    in_atlas && /"Authorization"[[:space:]]*:[[:space:]]*"Bearer / {
+      sub(/"Bearer [^"]*"/, "\"Bearer " token "\"")
+      in_atlas = 0
+    }
+    { print }
+  ' "$CLAUDE_CONFIG" > "${CLAUDE_CONFIG}.tmp" || exit 1
+
+  mv "${CLAUDE_CONFIG}.tmp" "$CLAUDE_CONFIG" || exit 1
+
   if ! grep -Fq "Bearer ${ATLAS_MCP_TOKEN}" "$CLAUDE_CONFIG" 2>/dev/null; then
     printf '\033[2K\r'
-    error_box "Could not update automatically" "The URL and Authorization lines may be split across lines. Edit claude_desktop_config.json manually — see MCP_SETUP.md."
+    error_box "Could not update automatically" "Unable to find or update the Authorization field. Edit claude_desktop_config.json manually."
     exit 1
   fi
   printf '\033[2K\r'
