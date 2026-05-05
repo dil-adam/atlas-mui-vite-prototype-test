@@ -88,7 +88,7 @@ export function PeoplePage() {
       field: 'memberIds',
       headerName: 'Members',
       width: 100,
-      valueGetter: (value) => value.length,
+      valueGetter: (value: string[]) => value?.length || 0,
     },
     {
       field: 'actions',
@@ -109,9 +109,8 @@ export function PeoplePage() {
           <Button
             size="small"
             variant="text"
-            color="error"
             onClick={() => handleDeleteGroup(params.row.id)}
-            sx={{ minWidth: 'auto', padding: 0.5 }}
+            sx={{ minWidth: 'auto', padding: 0.5, color: 'error.main' }}
           >
             <TrashIcon />
           </Button>
@@ -149,21 +148,21 @@ export function PeoplePage() {
 
   return (
     <PageLayout>
-      <PageHeader
-        title="People & Groups"
-        description="Manage team members and organizational groups"
-        actions={
-          tabValue === 1 ? (
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={handleAddGroup}
-            >
-              New Group
-            </Button>
-          ) : null
-        }
-      />
+      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
+        <PageHeader
+          pageTitle="People & Groups"
+          pageSubtitle="Manage team members and organizational groups"
+        />
+        {tabValue === 1 && (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleAddGroup}
+          >
+            New Group
+          </Button>
+        )}
+      </Stack>
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
         <Tabs value={tabValue} onChange={(_, value) => setTabValue(value)}>
           <Tab label="People" />

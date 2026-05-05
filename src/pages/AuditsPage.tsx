@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Box, Button, Stack } from '@mui/material';
-import { DataGridPro, type GridColDef, type GridRowSelectionModel } from '@mui/x-data-grid-pro';
+import { DataGridPro, type GridColDef } from '@mui/x-data-grid-pro';
 import { PageHeader } from '@diligentcorp/atlas-react-bundle';
 import PageLayout from '../components/PageLayout';
 import { StatusIndicator } from '@diligentcorp/atlas-react-bundle';
@@ -18,17 +18,15 @@ const STATUS_CONFIG = {
   'in-progress': { variant: 'warning' as const, label: 'In Progress' },
   completed: { variant: 'success' as const, label: 'Completed' },
   overdue: { variant: 'error' as const, label: 'Overdue' },
-  cancelled: { variant: 'default' as const, label: 'Cancelled' },
+  cancelled: { variant: 'info' as const, label: 'Cancelled' },
 };
 
 export function AuditsPage() {
   const [audits, setAudits] = useState<Audit[]>(auditsData as Audit[]);
   const [people] = useState<Person[]>(peopleData as Person[]);
   const [groups] = useState<Group[]>(groupsData as Group[]);
-  const [selectionModel, setSelectionModel] = useState<GridRowSelectionModel>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAudit, setEditingAudit] = useState<Audit | null>(null);
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 25 });
 
   const peopleMap = useMemo(() => {
     return new Map(people.map((p) => [p.id, p]));
@@ -47,11 +45,7 @@ export function AuditsPage() {
       width: 140,
       renderCell: (params) => {
         const config = STATUS_CONFIG[params.value as keyof typeof STATUS_CONFIG];
-        return (
-          <StatusIndicator variant={config.variant}>
-            {config.label}
-          </StatusIndicator>
-        );
+        return <StatusIndicator variant={config.variant as any} label={config.label} />;
       },
     },
     {
@@ -96,9 +90,8 @@ export function AuditsPage() {
           <Button
             size="small"
             variant="text"
-            color="error"
             onClick={() => handleDelete(params.row.id)}
-            sx={{ minWidth: 'auto', padding: 0.5 }}
+            sx={{ minWidth: 'auto', padding: 0.5, color: 'error.main' }}
           >
             <TrashIcon />
           </Button>
@@ -136,19 +129,19 @@ export function AuditsPage() {
 
   return (
     <PageLayout>
-      <PageHeader
-        title="Audits"
-        description="Manage and track enterprise audits"
-        actions={
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleAddAudit}
-          >
-            New Audit
-          </Button>
-        }
-      />
+      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 2 }}>
+        <PageHeader
+          pageTitle="Audits"
+          pageSubtitle="Manage and track enterprise audits"
+        />
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={handleAddAudit}
+        >
+          New Audit
+        </Button>
+      </Stack>
       <Box sx={{ height: 'calc(100vh - 280px)', width: '100%' }}>
         <DataGridPro
           rows={audits}
